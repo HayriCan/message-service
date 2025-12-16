@@ -23,15 +23,21 @@ class WebhookGateway implements WebhookGatewayInterface
      * @throws WebhookServerException 5xx errors, will retry
      * @throws WebhookConnectionException Connection or timeout errors, will retry
      */
-    public function send(string $to, string $content): WebhookResponse
+    public function send(string $to, string $content, ?string $idempotencyKey = null): WebhookResponse
     {
         try {
+            $headers = [
+                'Content-Type' => 'application/json',
+                'x-ins-auth-key' => $this->authKey,
+            ];
+
+            if ($idempotencyKey !== null) {
+                $headers['X-Idempotency-Key'] = $idempotencyKey;
+            }
+
             /** @var Response $response */
             $response = Http::timeout($this->timeout)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'x-ins-auth-key' => $this->authKey,
-                ])
+                ->withHeaders($headers)
                 ->post($this->url, [
                     'to' => $to,
                     'content' => $content,

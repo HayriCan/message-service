@@ -71,8 +71,18 @@ class MessageService
     {
         return $this->webhookGateway->send(
             to: $message->phone_number,
-            content: $message->content
+            content: $message->content,
+            idempotencyKey: $this->generateIdempotencyKey($message)
         );
+    }
+
+    /**
+     * Generate a unique idempotency key for the message.
+     * This prevents duplicate sends if the same message is retried.
+     */
+    protected function generateIdempotencyKey(Message $message): string
+    {
+        return sprintf('msg_%d_%d', $message->id, $message->created_at->timestamp);
     }
 
     public function validateContent(string $content): bool

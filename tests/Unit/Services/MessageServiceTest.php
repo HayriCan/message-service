@@ -149,11 +149,12 @@ class MessageServiceTest extends TestCase
     public function test_send_message_returns_success_response(): void
     {
         $message = Message::factory()->create();
+        $expectedIdempotencyKey = sprintf('msg_%d_%d', $message->id, $message->created_at->timestamp);
 
         $this->webhookGateway
             ->shouldReceive('send')
             ->once()
-            ->with($message->phone_number, $message->content)
+            ->with($message->phone_number, $message->content, $expectedIdempotencyKey)
             ->andReturn(WebhookResponse::success('test-message-id'));
 
         $result = $this->service->sendMessage($message);
@@ -163,14 +164,33 @@ class MessageServiceTest extends TestCase
         $this->assertNull($result->error);
     }
 
-    public function test_send_message_throws_client_exception_on_4xx_response(): void
+    public function test_send_message_includes_idempotency_key(): void
     {
         $message = Message::factory()->create();
+        $expectedIdempotencyKey = sprintf('msg_%d_%d', $message->id, $message->created_at->timestamp);
 
         $this->webhookGateway
             ->shouldReceive('send')
             ->once()
-            ->with($message->phone_number, $message->content)
+            ->withArgs(function ($to, $content, $idempotencyKey) use ($message, $expectedIdempotencyKey) {
+                return $to === $message->phone_number
+                    && $content === $message->content
+                    && $idempotencyKey === $expectedIdempotencyKey;
+            })
+            ->andReturn(WebhookResponse::success('test-message-id'));
+
+        $this->service->sendMessage($message);
+    }
+
+    public function test_send_message_throws_client_exception_on_4xx_response(): void
+    {
+        $message = Message::factory()->create();
+        $expectedIdempotencyKey = sprintf('msg_%d_%d', $message->id, $message->created_at->timestamp);
+
+        $this->webhookGateway
+            ->shouldReceive('send')
+            ->once()
+            ->with($message->phone_number, $message->content, $expectedIdempotencyKey)
             ->andThrow(new WebhookClientException('Client error: HTTP 400', 400));
 
         $this->expectException(WebhookClientException::class);
@@ -182,11 +202,12 @@ class MessageServiceTest extends TestCase
     public function test_send_message_throws_server_exception_on_5xx_response(): void
     {
         $message = Message::factory()->create();
+        $expectedIdempotencyKey = sprintf('msg_%d_%d', $message->id, $message->created_at->timestamp);
 
         $this->webhookGateway
             ->shouldReceive('send')
             ->once()
-            ->with($message->phone_number, $message->content)
+            ->with($message->phone_number, $message->content, $expectedIdempotencyKey)
             ->andThrow(new WebhookServerException('Server error: HTTP 500', 500));
 
         $this->expectException(WebhookServerException::class);

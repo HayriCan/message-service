@@ -85,6 +85,21 @@ docker-compose exec app php artisan db:seed
 docker-compose exec app php artisan l5-swagger:generate
 ```
 
+## Makefile (Optional)
+
+If you have `make` installed, you can use shorthand commands:
+
+```bash
+make help          # Show all available commands
+make up            # Start containers
+make down          # Stop containers
+make dispatch      # Process pending messages
+make test          # Run all tests
+make setup         # Full initial setup (install, key, migrate, seed, swagger)
+```
+
+Run `make help` to see all available commands.
+
 ## Usage
 
 ### Sending Messages

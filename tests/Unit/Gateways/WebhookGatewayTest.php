@@ -121,4 +121,40 @@ class WebhookGatewayTest extends TestCase
         $this->assertTrue($exception->isRetryable());
         $this->assertNull($exception->httpStatus);
     }
+
+    public function test_send_includes_idempotency_key_header_when_provided(): void
+    {
+        Http::fake([
+            'webhook.site/*' => Http::response([
+                'message' => 'Accepted',
+                'messageId' => 'test-message-id',
+            ], 202),
+        ]);
+
+        $response = $this->gateway->send('+905551234567', 'Test message', 'msg_123_1234567890');
+
+        $this->assertTrue($response->success);
+
+        Http::assertSent(function ($request) {
+            return $request->hasHeader('X-Idempotency-Key', 'msg_123_1234567890');
+        });
+    }
+
+    public function test_send_does_not_include_idempotency_key_header_when_null(): void
+    {
+        Http::fake([
+            'webhook.site/*' => Http::response([
+                'message' => 'Accepted',
+                'messageId' => 'test-message-id',
+            ], 202),
+        ]);
+
+        $response = $this->gateway->send('+905551234567', 'Test message');
+
+        $this->assertTrue($response->success);
+
+        Http::assertSent(function ($request) {
+            return !$request->hasHeader('X-Idempotency-Key');
+        });
+    }
 }
