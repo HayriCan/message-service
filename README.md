@@ -22,7 +22,7 @@ Automatic message sending system that processes messages from a database and sen
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/HayriCan/message-service.git
 cd message-service
 ```
 
@@ -117,6 +117,7 @@ docker-compose exec app php artisan messages:send
 Options:
 - `--limit=100`: Maximum number of messages to process (default: 100)
 - `--reset-stale`: Reset stuck processing messages back to pending
+- `--retry-failed`: Reset failed messages to pending and retry
 
 Example:
 
@@ -126,6 +127,9 @@ docker-compose exec app php artisan messages:send --limit=50
 
 # Reset stale messages and process
 docker-compose exec app php artisan messages:send --reset-stale
+
+# Retry failed messages
+docker-compose exec app php artisan messages:send --retry-failed
 ```
 
 ### API Endpoints
