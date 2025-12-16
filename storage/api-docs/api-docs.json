@@ -1,0 +1,153 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Message Service API",
+        "description": "API for automatic message sending system",
+        "contact": {
+            "email": "developer@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/messages/sent": {
+            "get": {
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Get list of sent messages",
+                "description": "Returns paginated list of all successfully sent messages",
+                "operationId": "getSentMessages",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Message"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 7
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Message": {
+                "title": "Message",
+                "description": "Sent message object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "+905551234567"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Hello World"
+                    },
+                    "message_id": {
+                        "type": "string",
+                        "example": "abc-123-def"
+                    },
+                    "sent_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-01-01T12:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "PaginationMeta": {
+                "title": "Pagination Meta",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 7
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Messages",
+            "description": "Messages"
+        }
+    ]
+}
